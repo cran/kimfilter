@@ -12,12 +12,12 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // Rginv
-arma::mat Rginv(arma::mat m);
+arma::mat Rginv(const arma::mat& m);
 RcppExport SEXP _kimfilter_Rginv(SEXP mSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type m(mSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type m(mSEXP);
     rcpp_result_gen = Rcpp::wrap(Rginv(m));
     return rcpp_result_gen;
 END_RCPP

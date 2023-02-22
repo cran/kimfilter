@@ -13,7 +13,7 @@ lpnag (employees on non-agricultural payrolls), and
 dcoinc (the coincident economic indicator)
 }
 \source{
-Kim, Chang-Jin and Charles R. Nelson (1999) "State-Space Models with Regime Switching: Classical and Gibbs-Sampling Approaches with Applications" <doi:10.7551/mitpress/6444.001.0001><http://econ.korea.ac.kr/~cjkim/>.
+Kim, Chang-Jin and Charles R. Nelson (1999) "State-Space Models with Regime Switching: Classical and Gibbs-Sampling Approaches with Applications" <doi:10.7551/mitpress/6444.001.0001><http://econ.korea.ac.kr/~cjkim/> (http://econ.korea.ac.kr/~cjkim/).
 }
 \usage{
 data(sw_dcf)

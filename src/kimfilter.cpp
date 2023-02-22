@@ -14,12 +14,14 @@
 //' @param m matrix
 //' @return matrix inverse of m
 // [[Rcpp::export]]
-arma::mat Rginv(arma::mat m){
+arma::mat Rginv(const arma::mat& m){
   arma::mat U, V;
   arma::vec S;
   arma::svd(U, S, V, m, "dc");
-  arma::uvec Positive = arma::find(S > 1E-06 * S(1));
-  if(all(Positive)){
+  arma::uvec Positive = arma::find(S > 0.0);
+  if(Positive.size() == 0){
+    return arma::zeros(m.n_rows, m.n_cols);
+  }else if(all(Positive)){
     arma::mat D = diagmat(S);
     return V * (1/D * U.t());
   }else if(!any(Positive)){
