@@ -1,3 +1,9 @@
+#kalmanfilter 1.0.2
+
+## Minor changes
+
+* updated to use sentinel "_PACKAGE"
+
 #kalmanfilter 1.0.1
 
 ## Minor changes
