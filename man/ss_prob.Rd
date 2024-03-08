@@ -2,12 +2,7 @@
 % Please edit documentation in R/RcppExports.R
 \name{ss_prob}
 \alias{ss_prob}
-\title{Finds the steady state probabilities from a transition matrix
-mat = |p_11 p_21 ... p_m1|
-      |p_12 p_22 ... p_m2|
-      |...            ...|
-      |p_1m p_2m ... p_mm|
-where the columns sum to 1}
+\title{Steady State Probabilities}
 \usage{
 ss_prob(mat)
 }
@@ -27,8 +22,10 @@ mat = |p_11 p_21 ... p_m1|
 where the columns sum to 1
 }
 \examples{
+\dontrun{
 library(kimfilter)
 Pm = rbind(c(0.8406, 0.0304), 
            c(0.1594, 0.9696))
 ss_prob(Pm)
+}
 }

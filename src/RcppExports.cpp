@@ -12,12 +12,12 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // Rginv
-arma::mat Rginv(const arma::mat& m);
+arma::mat Rginv(const arma::mat m);
 RcppExport SEXP _kimfilter_Rginv(SEXP mSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type m(mSEXP);
+    Rcpp::traits::input_parameter< const arma::mat >::type m(mSEXP);
     rcpp_result_gen = Rcpp::wrap(Rginv(m));
     return rcpp_result_gen;
 END_RCPP
@@ -68,9 +68,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// kim_filter
-Rcpp::List kim_filter(Rcpp::List& ssm, const arma::mat& yt, Rcpp::Nullable<Rcpp::NumericMatrix> Xo, Rcpp::Nullable<Rcpp::NumericMatrix> Xs, Rcpp::Nullable<Rcpp::NumericMatrix> weight, bool smooth);
-RcppExport SEXP _kimfilter_kim_filter(SEXP ssmSEXP, SEXP ytSEXP, SEXP XoSEXP, SEXP XsSEXP, SEXP weightSEXP, SEXP smoothSEXP) {
+// kim_filter_cpp
+Rcpp::List kim_filter_cpp(Rcpp::List& ssm, const arma::mat& yt, Rcpp::Nullable<Rcpp::NumericMatrix> Xo, Rcpp::Nullable<Rcpp::NumericMatrix> Xs, Rcpp::Nullable<Rcpp::NumericMatrix> weight, bool smooth);
+RcppExport SEXP _kimfilter_kim_filter_cpp(SEXP ssmSEXP, SEXP ytSEXP, SEXP XoSEXP, SEXP XsSEXP, SEXP weightSEXP, SEXP smoothSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -80,7 +80,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericMatrix> >::type Xs(XsSEXP);
     Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericMatrix> >::type weight(weightSEXP);
     Rcpp::traits::input_parameter< bool >::type smooth(smoothSEXP);
-    rcpp_result_gen = Rcpp::wrap(kim_filter(ssm, yt, Xo, Xs, weight, smooth));
+    rcpp_result_gen = Rcpp::wrap(kim_filter_cpp(ssm, yt, Xo, Xs, weight, smooth));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -91,7 +91,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_kimfilter_ss_prob", (DL_FUNC) &_kimfilter_ss_prob, 1},
     {"_kimfilter_self_rbind", (DL_FUNC) &_kimfilter_self_rbind, 2},
     {"_kimfilter_contains", (DL_FUNC) &_kimfilter_contains, 2},
-    {"_kimfilter_kim_filter", (DL_FUNC) &_kimfilter_kim_filter, 6},
+    {"_kimfilter_kim_filter_cpp", (DL_FUNC) &_kimfilter_kim_filter_cpp, 6},
     {NULL, NULL, 0}
 };
 

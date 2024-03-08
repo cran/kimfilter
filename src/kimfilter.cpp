@@ -14,14 +14,12 @@
 //' @param m matrix
 //' @return matrix inverse of m
 // [[Rcpp::export]]
-arma::mat Rginv(const arma::mat& m){
+arma::mat Rginv(const arma::mat m){
   arma::mat U, V;
   arma::vec S;
   arma::svd(U, S, V, m, "dc");
-  arma::uvec Positive = arma::find(S > 0.0);
-  if(Positive.size() == 0){
-    return arma::zeros(m.n_rows, m.n_cols);
-  }else if(all(Positive)){
+  arma::uvec Positive = arma::find(S > 1E-06 * S(1));
+  if(all(Positive)){
     arma::mat D = diagmat(S);
     return V * (1/D * U.t());
   }else if(!any(Positive)){
@@ -32,6 +30,24 @@ arma::mat Rginv(const arma::mat& m){
     return V * D * U.t();
   }
 }
+// arma::mat Rginv(const arma::mat& m){
+//   arma::mat U, V;
+//   arma::vec S;
+//   arma::svd(U, S, V, m, "dc");
+//   arma::uvec Positive = arma::find(S > 0.0);
+//   if(Positive.size() == 0){
+//     return arma::zeros(m.n_rows, m.n_cols);
+//   }else if(all(Positive)){
+//     arma::mat D = diagmat(S);
+//     return V * (1/D * U.t());
+//   }else if(!any(Positive)){
+//     return arma::zeros(m.n_rows, m.n_cols);
+//   }else{
+//     S.elem(Positive) = 1/S.elem(Positive);
+//     arma::mat D = diagmat(S);
+//     return V * D * U.t();
+//   }
+// }
 
 //' Generalized matrix inverse
 //' 
@@ -48,6 +64,8 @@ arma::mat gen_inv(arma::mat m){
   return out;
 }
 
+//' Steady State Probabilities
+//' 
 //' Finds the steady state probabilities from a transition matrix
 //' mat = |p_11 p_21 ... p_m1|
 //'       |p_12 p_22 ... p_m2|
@@ -59,10 +77,12 @@ arma::mat gen_inv(arma::mat m){
 //' represents the number of states
 //' @return matrix of dimensions Sx1 with steady state probabilities
 //' @examples
+//' \dontrun{
 //' library(kimfilter)
 //' Pm = rbind(c(0.8406, 0.0304), 
 //'            c(0.1594, 0.9696))
 //' ss_prob(Pm)
+//' }
 //' @export
 // [[Rcpp::export]]
 arma::mat ss_prob(arma::mat mat){
@@ -109,16 +129,16 @@ bool contains(std::string s, Rcpp::List L){
 //' Kim Filter
 //' 
 //' @param ssm list describing the state space model, must include names
-//' B0 - N_b x 1 matrix, initial guess for the unobserved components 
-//' P0 - N_b x N_b matrix, initial guess for the covariance matrix of the unobserved components
-//' Dm - N_b x 1 matrix, constant matrix for the state equation
-//' Am - N_y x 1 matrix, constant matrix for the observation equation
-//' Fm - N_b X p matrix, state transition matrix
-//' Hm - N_y x N_b matrix, observation matrix
-//' Qm - N_b x N_b matrix, state error covariance matrix
-//' Rm - N_y x N_y matrix, state error covariance matrix
-//' betaO - N_y x N_o matrix, coefficient matrix for the observation exogenous data
-//' betaS - N_b x N_s matrix, coefficient matrix for the state exogenous data
+//' B0 - N_b x 1 x n_state array of matrices, initial guess for the unobserved components 
+//' P0 - N_b x N_b x n_state array of matrices, initial guess for the covariance matrix of the unobserved components
+//' Dm - N_b x 1 x n_state array of matrices, constant matrix for the state equation
+//' Am - N_y x 1 x n_state array of matrices, constant matrix for the observation equation
+//' Fm - N_b X p x n_state array of matrices, state transition matrix
+//' Hm - N_y x N_b x n_state array of matrices, observation matrix
+//' Qm - N_b x N_b x n_state array of matrices, state error covariance matrix
+//' Rm - N_y x N_y x n_state array of matrices, state error covariance matrix
+//' betaO - N_y x N_o x n_state array of matrices, coefficient matrix for the observation exogenous data
+//' betaS - N_b x N_s x n_state array of matrices, coefficient matrix for the state exogenous data
 //' Pm - n_state x n_state matrix, state transition probability matrix
 //' @param yt N x T matrix of data
 //' @param Xo N_o x T matrix of exogenous observation data
@@ -126,75 +146,8 @@ bool contains(std::string s, Rcpp::List L){
 //' @param weight column matrix of weights, T x 1
 //' @param smooth boolean indication whether to run the backwards smoother
 //' @return list of cubes and matrices output by the Kim filter
-//' @examples
-//' #Stock and Watson Markov switching dynamic common factor
-//' library(kimfilter)
-//' library(data.table)
-//' data(sw_dcf)
-//' data = sw_dcf[, colnames(sw_dcf) != "dcoinc", with = FALSE]
-//' vars = colnames(data)[colnames(data) != "date"]
-//' 
-//' #Set up the state space model
-//' ssm = list()
-//' ssm[["Fm"]] = rbind(c(0.8760, -0.2171, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), 
-//'                   c(1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), 
-//'                   c(0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-//'                   c(0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0), 
-//'                   c(0, 0, 0, 0, 0.0364, -0.0008, 0, 0, 0, 0, 0, 0), 
-//'                   c(0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0), 
-//'                   c(0, 0, 0, 0, 0, 0, -0.2965, -0.0657, 0, 0, 0, 0), 
-//'                   c(0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0), 
-//'                   c(0, 0, 0, 0, 0, 0, 0, 0, -0.3959, -0.1903, 0, 0),
-//'                   c(0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0), 
-//'                   c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.2436, 0.1281), 
-//'                   c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0))
-//' ssm[["Fm"]] = array(ssm[["Fm"]], dim = c(dim(ssm[["Fm"]]), 2))
-//' ssm[["Dm"]] = matrix(c(-1.5700, rep(0, 11)), nrow = nrow(ssm[["Fm"]]), ncol = 1)
-//' ssm[["Dm"]] = array(ssm[["Dm"]], dim = c(dim(ssm[["Dm"]]), 2))
-//' ssm[["Dm"]][1,, 2] = 0.2802
-//' ssm[["Qm"]] = diag(c(1, 0, 0, 0, 0.0001, 0, 0.0001, 0, 0.0001, 0, 0.0001, 0))
-//' ssm[["Qm"]] = array(ssm[["Qm"]], dim = c(dim(ssm[["Qm"]]), 2))
-//' ssm[["Hm"]] = rbind(c(0.0058, -0.0033, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0), 
-//'                   c(0.0011, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0), 
-//'                   c(0.0051, -0.0033, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0), 
-//'                   c(0.0012, -0.0005, 0.0001, 0.0002, 0, 0, 0, 0, 0, 0, 1, 0))
-//' ssm[["Hm"]] = array(ssm[["Hm"]], dim = c(dim(ssm[["Hm"]]), 2))
-//' ssm[["Am"]] = matrix(0, nrow = nrow(ssm[["Hm"]]), ncol = 1)
-//' ssm[["Am"]] = array(ssm[["Am"]], dim = c(dim(ssm[["Am"]]), 2))
-//' ssm[["Rm"]] = matrix(0, nrow = nrow(ssm[["Am"]]), ncol = nrow(ssm[["Am"]]))
-//' ssm[["Rm"]] = array(ssm[["Rm"]], dim = c(dim(ssm[["Rm"]]), 2))
-//' ssm[["B0"]] = matrix(c(rep(-4.60278, 4), 0, 0, 0, 0, 0, 0, 0, 0)) 
-//' ssm[["B0"]] = array(ssm[["B0"]], dim = c(dim(ssm[["B0"]]), 2))
-//' ssm[["B0"]][1:4,, 2] = rep(0.82146, 4)
-//' ssm[["P0"]] = rbind(c(2.1775, 1.5672, 0.9002, 0.4483, 0, 0, 0, 0, 0, 0, 0, 0), 
-//'                     c(1.5672, 2.1775, 1.5672, 0.9002, 0, 0, 0, 0, 0, 0, 0, 0), 
-//'                     c(0.9002, 1.5672, 2.1775, 1.5672, 0, 0, 0, 0, 0, 0, 0, 0), 
-//'                     c(0.4483, 0.9002, 1.5672, 2.1775, 0, 0, 0, 0, 0, 0, 0, 0), 
-//'                     c(0, 0, 0, 0, 0.0001, 0, 0, 0, 0, 0, 0, 0), 
-//'                     c(0, 0, 0, 0, 0, 0.0001,  0, 0, 0, 0, 0, 0), 
-//'                     c(0, 0, 0, 0, 0, 0, 0.0001, -0.0001, 0, 0, 0, 0),
-//'                     c(0, 0, 0, 0, 0, 0, -0.0001, 0.0001, 0, 0, 0, 0), 
-//'                     c(0, 0, 0, 0, 0, 0, 0, 0, 0.0001, -0.0001, 0, 0), 
-//'                     c(0, 0, 0, 0, 0, 0, 0, 0, -0.0001, 0.0001, 0, 0), 
-//'                     c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.0001, -0.0001), 
-//'                     c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.0001, 0.0001))
-//' ssm[["P0"]] = array(ssm[["P0"]], dim = c(dim(ssm[["P0"]]), 2))
-//' ssm[["Pm"]] = rbind(c(0.8406, 0.0304), 
-//'                     c(0.1594, 0.9696))
-//'   
-//' #Log, difference and standardize the data
-//' data[, c(vars) := lapply(.SD, log), .SDcols = c(vars)]
-//' data[, c(vars) := lapply(.SD, function(x){
-//'   x - shift(x, type = "lag", n = 1)
-//' }), .SDcols = c(vars)]
-//' data[, c(vars) := lapply(.SD, scale), .SDcols = c(vars)]
-//'   
-//' #Convert the data to an NxT matrix
-//' yt = t(data[, c(vars), with = FALSE])
-//' kf = kim_filter(ssm, yt, smooth = TRUE)
-//' @export
 // [[Rcpp::export]]
-Rcpp::List kim_filter(Rcpp::List& ssm, const arma::mat& yt, 
+Rcpp::List kim_filter_cpp(Rcpp::List& ssm, const arma::mat& yt, 
                       Rcpp::Nullable<Rcpp::NumericMatrix> Xo = R_NilValue,
                       Rcpp::Nullable<Rcpp::NumericMatrix> Xs = R_NilValue,
                       Rcpp::Nullable<Rcpp::NumericMatrix> weight = R_NilValue,

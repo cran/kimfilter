@@ -1,3 +1,9 @@
+#kalmanfilter 1.0.3
+
+## Minor changes
+
+* updated documentation, fixed example by reverting Rginv back to version 1.0.0
+
 #kalmanfilter 1.0.2
 
 ## Minor changes
