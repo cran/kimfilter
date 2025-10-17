@@ -200,6 +200,7 @@ $$
 ## Example: Stock and Watson Markov Switching Dynamic Common Factor Model
 
 ```{r}
+#Note output does not work as expected anymore
 library(kimfilter)
 library(data.table)
 library(maxLik)

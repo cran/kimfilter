@@ -1,8 +1,14 @@
 #kalmanfilter 1.0.3
 
+## Major changes
+
+* bug fix to smoother
+
+#kalmanfilter 1.0.3
+
 ## Minor changes
 
-* updated documentation, fixed example by reverting Rginv back to version 1.0.0
+* updated documentation, reverted Rginv back to version 1.0.0
 
 #kalmanfilter 1.0.2
 

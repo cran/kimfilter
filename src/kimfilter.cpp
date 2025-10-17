@@ -468,7 +468,7 @@ Rcpp::List kim_filter_cpp(Rcpp::List& ssm, const arma::mat& yt,
         for(int stf = 0; stf < n_states; stf++){
           //Full information inference on unobserved component and its covariance matrix
           //B^{j,k}_{t|T} = B^{j}_{t|t} + P^{j}_{t|t} %*% t(Fm) %*% solve(P^{j,k}_{t+1|t}) %*% (B^{k}_{t+1|T} - B^{j,k}_{t+1|t})
-          temp = P_tts(st).slice(i) * Fm_t * Rginv(P_tlss(s).slice(i + 1));
+          temp = P_tts(st).slice(i) * Fm_t * gen_inv(P_tlss(s).slice(i + 1));
           B_tTss.slice(s) = B_tts.slice(st).col(i) + temp * (B_tts.slice(st).col(i + 1) - B_tlss.slice(s).col(i + 1));
           
           // //P^{j,k} = P^{j}_{t|t} + P^{j}_{t|t} %*% t(Fm) %*% solve(P^{j,k}_{t+1|t}) %*% (P^{k}_{t+t|T} - P^{j,k}_{t+1|t}) %*% t(P^{j}_{t|t} %*% t(Fm) %*% solve(P^{j,k}_{t+1|t}))
